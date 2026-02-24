@@ -1,0 +1,243 @@
+class WorkoutTimerWeb {
+    constructor() {
+        this.actionTime = 45;
+        this.restTime = 15;
+        this.totalTime = 300;
+        this.soundType = 'beep';
+        
+        this.timeElapsed = 0;
+        this.cyclesCompleted = 0;
+        this.isRunning = false;
+        this.isPaused = false;
+        this.timerInterval = null;
+        
+        this.soundFiles = {
+            beep: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
+            glass: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
+            ping: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
+            submarine: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
+        };
+        
+        this.initializeEventListeners();
+    }
+    
+    initializeEventListeners() {
+        // Setup section
+        document.getElementById('startBtn').addEventListener('click', () => this.startWorkout());
+        
+        // Workout section
+        document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
+        document.getElementById('stopBtn').addEventListener('click', () => this.stopWorkout());
+        
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            // Use currentTarget so clicking on the inner text still references the button element
+            btn.addEventListener('click', (e) => this.loadPreset(e.currentTarget));
+            console.log('attached preset listener to', btn);
+        });
+        
+        // Restart button
+        document.getElementById('restartBtn').addEventListener('click', () => this.resetToSetup());
+    }
+    
+    formatTime(seconds) {
+        const mins = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    
+    playSound(count = 1) {
+        // Use Web Audio API to generate beep sounds
+        if (this.soundType === 'silent') return;
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const frequency = this.getSoundFrequency();
+        
+        for (let i = 0; i < count; i++) {
+            setTimeout(() => {
+                this.generateBeep(audioContext, frequency);
+            }, i * 200);
+        }
+    }
+    
+    getSoundFrequency() {
+        const frequencies = {
+            beep: 1000,
+            glass: 2000,
+            ping: 1500,
+            submarine: 400
+        };
+        return frequencies[this.soundType] || 1000;
+    }
+    
+    generateBeep(audioContext, frequency) {
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        oscillator.frequency.value = frequency;
+        oscillator.type = this.soundType === 'submarine' ? 'sine' : 'sine';
+        
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+    }
+    
+    startWorkout() {
+        this.actionTime = parseInt(document.getElementById('actionTime').value);
+        this.restTime = parseInt(document.getElementById('restTime').value);
+        this.totalTime = parseInt(document.getElementById('totalTime').value);
+        this.soundType = document.getElementById('soundSelect').value;
+        
+        // Validate
+        if (this.totalTime < (this.actionTime + this.restTime)) {
+            alert('Total time must be at least action + rest time');
+            return;
+        }
+        
+        // Reset counters
+        this.timeElapsed = 0;
+        this.cyclesCompleted = 0;
+        this.isRunning = true;
+        this.isPaused = false;
+        
+        // Show workout section
+        this.showSection('workoutSection');
+        
+        // Start the timer
+        this.runWorkout();
+    }
+    
+    runWorkout() {
+        if (!this.isRunning) return;
+        
+        const startTime = Date.now();
+        let phaseStartTime = startTime;
+        let isActionPhase = true;
+        
+        const updateTimer = () => {
+            if (!this.isRunning) return;
+            
+            if (this.isPaused) {
+                setTimeout(updateTimer, 100);
+                return;
+            }
+            
+            const now = Date.now();
+            this.timeElapsed = Math.floor((now - startTime) / 1000);
+            const remainingTotal = Math.max(0, this.totalTime - this.timeElapsed);
+            
+            const currentPhaseDuration = isActionPhase ? this.actionTime : this.restTime;
+            const phaseElapsed = Math.floor((now - phaseStartTime) / 1000);
+            const remainingPhase = Math.max(0, currentPhaseDuration - phaseElapsed);
+            
+            // Update display
+            document.getElementById('totalDisplay').textContent = this.formatTime(remainingTotal);
+            document.getElementById('phaseDisplay').textContent = this.formatTime(remainingPhase);
+            document.getElementById('cyclesCompleted').textContent = this.cyclesCompleted;
+            
+            const phaseText = isActionPhase ? '🏃 ACTION' : '😴 REST';
+            document.getElementById('phaseLabel').textContent = phaseText;
+            document.getElementById('currentPhaseText').textContent = phaseText;
+            
+            // Check if total time expired
+            if (remainingTotal <= 0) {
+                this.completeWorkout();
+                return;
+            }
+            
+            // Check if phase complete
+            if (remainingPhase <= 0) {
+                this.playSound(2); // 2 beeps for phase transition
+                
+                if (isActionPhase) {
+                    // Switch to rest
+                    isActionPhase = false;
+                } else {
+                    // Complete cycle
+                    isActionPhase = true;
+                    this.cyclesCompleted++;
+                }
+                
+                phaseStartTime = Date.now();
+            }
+            
+            setTimeout(updateTimer, 100);
+        };
+        
+        this.playSound(1); // 1 beep to start
+        updateTimer();
+    }
+    
+    togglePause() {
+        const btn = document.getElementById('pauseBtn');
+        if (this.isPaused) {
+            this.isPaused = false;
+            btn.textContent = 'Pause';
+            btn.classList.remove('btn-success');
+            btn.classList.add('btn-warning');
+        } else {
+            this.isPaused = true;
+            btn.textContent = 'Resume';
+            btn.classList.remove('btn-warning');
+            btn.classList.add('btn-success');
+        }
+    }
+    
+    stopWorkout() {
+        if (confirm('Are you sure you want to stop the workout?')) {
+            this.isRunning = false;
+            this.resetToSetup();
+        }
+    }
+    
+    completeWorkout() {
+        this.isRunning = false;
+        this.playSound(3); // 3 beeps for completion
+        
+        document.getElementById('finalTotalTime').textContent = this.formatTime(this.totalTime);
+        document.getElementById('finalCycles').textContent = this.cyclesCompleted;
+        
+        this.showSection('completeSection');
+    }
+    
+    loadPreset(button) {
+        console.log('preset button clicked', button.dataset);
+        const action = parseInt(button.dataset.action);
+        const rest = parseInt(button.dataset.rest);
+        const total = parseInt(button.dataset.total);
+        
+        document.getElementById('actionTime').value = action;
+        document.getElementById('restTime').value = rest;
+        document.getElementById('totalTime').value = total;
+        
+        // Automatically start workout using this preset
+        document.getElementById('soundSelect').value = this.soundType || 'beep';
+        this.startWorkout();
+    }
+    
+    resetToSetup() {
+        this.isRunning = false;
+        this.isPaused = false;
+        document.getElementById('pauseBtn').textContent = 'Pause';
+        document.getElementById('pauseBtn').classList.remove('btn-success');
+        document.getElementById('pauseBtn').classList.add('btn-warning');
+        this.showSection('setupSection');
+    }
+    
+    showSection(sectionId) {
+        document.querySelectorAll('.section').forEach(section => {
+            section.classList.remove('active');
+        });
+        document.getElementById(sectionId).classList.add('active');
+    }
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    new WorkoutTimerWeb();
+});

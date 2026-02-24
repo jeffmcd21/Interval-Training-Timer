@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Timer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>💪 Workout Timer</h1>
+        
+        <!-- Setup Section -->
+        <div id="setupSection" class="section active">
+            <h2>Set Up Your Workout</h2>
+            
+            <div class="input-group">
+                <label for="actionTime">Action/Exercise Time (seconds):</label>
+                <input type="number" id="actionTime" min="1" value="30" max="600">
+            </div>
+            
+            <div class="input-group">
+                <label for="restTime">Rest Time (seconds):</label>
+                <input type="number" id="restTime" min="1" value="15" max="600">
+            </div>
+            
+            <div class="input-group">
+                <label for="totalTime">Total Workout Time (seconds):</label>
+                <input type="number" id="totalTime" min="1" value="300" max="3600">
+            </div>
+            
+            <div class="input-group">
+                <label for="soundSelect">Sound Type:</label>
+                <select id="soundSelect">
+                    <option value="beep">Beep</option>
+                    <option value="glass">Glass</option>
+                    <option value="ping">Ping</option>
+                    <option value="submarine">Submarine</option>
+                    <option value="silent">Silent</option>
+                </select>
+            </div>
+            
+            <div class="button-group">
+                <button id="startBtn" class="btn btn-primary">Start Workout</button>
+            </div>
+            
+            <div class="presets">
+                <h3>Quick Presets (click to start):</h3>
+                <p class="preset-note">Selecting a preset will fill the fields and immediately begin the workout.</p>
+                <button class="preset-btn" data-action="20" data-rest="10" data-total="300">Quick HIIT (5 min)</button>
+                <button class="preset-btn" data-action="30" data-rest="30" data-total="600">Standard (10 min)</button>
+                <button class="preset-btn" data-action="60" data-rest="40" data-total="1200">Long (20 min)</button>
+            </div>
+        </div>
+        
+        <!-- Workout Section -->
+        <div id="workoutSection" class="section">
+            <div class="timer-display">
+                <div class="time-group">
+                    <div class="label">Total Time Remaining</div>
+                    <div id="totalDisplay" class="time">05:00</div>
+                </div>
+                
+                <div class="time-group phase-display">
+                    <div id="phaseLabel" class="label phase">🏃 ACTION</div>
+                    <div id="phaseDisplay" class="time phase">00:30</div>
+                </div>
+            </div>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <span class="stat-label">Cycles Completed:</span>
+                    <span id="cyclesCompleted" class="stat-value">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Current Phase:</span>
+                    <span id="currentPhaseText" class="stat-value">Preparing...</span>
+                </div>
+            </div>
+            
+            <div class="button-group">
+                <button id="pauseBtn" class="btn btn-warning">Pause</button>
+                <button id="stopBtn" class="btn btn-danger">Stop</button>
+            </div>
+        </div>
+        
+        <!-- Complete Section -->
+        <div id="completeSection" class="section">
+            <h2>🎉 Workout Complete!</h2>
+            <div class="completion-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Total Time:</span>
+                    <span id="finalTotalTime" class="stat-value">05:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Cycles Completed:</span>
+                    <span id="finalCycles" class="stat-value">0</span>
+                </div>
+            </div>
+            <p class="completion-message">Great job! Keep up the fitness routine!</p>
+            <div class="button-group">
+                <button id="restartBtn" class="btn btn-primary">Start New Workout</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>
