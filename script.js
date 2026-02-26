@@ -1,6 +1,6 @@
 class WorkoutTimerWeb {
     constructor() {
-        this.actionTime = 45;
+        this.actionTime = 30;
         this.restTime = 15;
         this.totalTime = 300;
         this.soundType = 'beep';
@@ -11,12 +11,14 @@ class WorkoutTimerWeb {
         this.isPaused = false;
         this.timerInterval = null;
         
-        this.soundFiles = {
-            beep: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
-            glass: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
-            ping: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
-            submarine: new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='),
+        // single shared AudioContext (resume on user gesture)
+        this.audioContext = null;
+        this.resumeAudioContext = () => {
+            if (this.audioContext && this.audioContext.state === 'suspended') {
+                this.audioContext.resume();
+            }
         };
+        this.soundFiles = null; // unused now
         
         this.initializeEventListeners();
     }
@@ -50,12 +52,18 @@ class WorkoutTimerWeb {
         // Use Web Audio API to generate beep sounds
         if (this.soundType === 'silent') return;
         
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        // lazily create audio context on first sound request
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        // ensure context is resumed (user gesture should have triggered startWorkout)
+        this.resumeAudioContext();
+        
         const frequency = this.getSoundFrequency();
         
         for (let i = 0; i < count; i++) {
             setTimeout(() => {
-                this.generateBeep(audioContext, frequency);
+                this.generateBeep(this.audioContext, frequency);
             }, i * 200);
         }
     }
@@ -105,6 +113,8 @@ class WorkoutTimerWeb {
         this.isRunning = true;
         this.isPaused = false;
         
+        // resume audio context on user interaction
+        this.resumeAudioContext();
         // Show workout section
         this.showSection('workoutSection');
         
@@ -215,7 +225,8 @@ class WorkoutTimerWeb {
         document.getElementById('restTime').value = rest;
         document.getElementById('totalTime').value = total;
         
-        // Automatically start workout using this preset
+        // resume audio context and start workout using this preset
+        this.resumeAudioContext();
         document.getElementById('soundSelect').value = this.soundType || 'beep';
         this.startWorkout();
     }
