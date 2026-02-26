@@ -4,9 +4,27 @@
     box-sizing: border-box;
 }
 
+/* -- theme variables ---------------------------------------------------- */
+:root {
+    --bg-color: white;
+    --text-color: #333;
+    --primary-color: #667eea;
+    --secondary-bg: #f5f5f5;
+    --timer-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.dark {
+    --bg-color: #1e1e1e;
+    --text-color: #eee;
+    --primary-color: #4a90e2;
+    --secondary-bg: #2c2c2c;
+    --timer-bg: linear-gradient(135deg, #444 0%, #222 100%);
+}
+
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--bg-color);
+    color: var(--text-color);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -15,7 +33,7 @@ body {
 }
 
 .container {
-    background: white;
+    background: var(--bg-color);
     border-radius: 20px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     padding: 40px;
@@ -25,20 +43,20 @@ body {
 
 h1 {
     text-align: center;
-    color: #333;
+    color: var(--text-color);
     margin-bottom: 30px;
     font-size: 2.5em;
 }
 
 h2 {
     text-align: center;
-    color: #667eea;
+    color: var(--primary-color);
     margin-bottom: 25px;
     font-size: 1.8em;
 }
 
 h3 {
-    color: #667eea;
+    color: var(--primary-color);
     margin-bottom: 15px;
     font-size: 1.2em;
 }
@@ -101,7 +119,7 @@ select {
     width: auto;
     margin-right: 10px;
     cursor: pointer;
-    accent-color: #667eea;
+    accent-color: var(--primary-color);
 }
 
 .checkbox-label {
@@ -136,12 +154,13 @@ select:focus {
 }
 
 .btn-primary {
-    background: #667eea;
+    background: var(--primary-color);
     color: white;
 }
 
 .btn-primary:hover {
-    background: #5568d3;
+    background: var(--primary-color);
+    filter: brightness(0.9);
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
 }
@@ -175,7 +194,7 @@ select:focus {
 }
 
 .timer-display {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--timer-bg);
     border-radius: 15px;
     padding: 30px;
     color: white;
@@ -320,6 +339,66 @@ select:focus {
 }
 
 /* Responsive Design */
+/* -- theme variables ---------------------------------------------------- */
+:root {
+    --bg-color: white;
+    --text-color: #333;
+    --primary-color: #667eea;
+    --secondary-bg: #f5f5f5;
+    --timer-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+body.dark {
+    --bg-color: #1e1e1e;
+    --text-color: #eee;
+    --primary-color: #4a90e2;
+    --secondary-bg: #2c2c2c;
+    --timer-bg: linear-gradient(135deg, #444 0%, #222 100%);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: var(--bg-color);
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: var(--text-color);
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+h2 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+h3 {
+    color: var(--primary-color);
+    margin-bottom: 15px;
+    font-size: 1.2em;
+}
+
+/* existing CSS continues unchanged... */
+
 @media (max-width: 480px) {
     .container {
         padding: 20px;

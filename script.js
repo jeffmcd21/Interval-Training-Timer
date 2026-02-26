@@ -5,6 +5,7 @@ class WorkoutTimerWeb {
         this.totalTime = 300;
         this.soundType = 'beep';
         this.keepScreenAwake = true;
+        this.darkMode = false;
         
         this.timeElapsed = 0;
         this.cyclesCompleted = 0;
@@ -23,6 +24,7 @@ class WorkoutTimerWeb {
         this.soundFiles = null; // unused now
         
         this.initializeEventListeners();
+        this.loadThemePreference();
     }
     
     initializeEventListeners() {
@@ -36,6 +38,11 @@ class WorkoutTimerWeb {
         // Keep screen awake toggle
         document.getElementById('keepScreenAwake').addEventListener('change', (e) => {
             this.keepScreenAwake = e.target.checked;
+        });
+        
+        // Theme toggle
+        document.getElementById('themeToggle').addEventListener('change', (e) => {
+            this.setDarkMode(e.target.checked);
         });
         
         // Preset buttons
@@ -279,6 +286,25 @@ class WorkoutTimerWeb {
             }).catch(err => {
                 console.error(`Error releasing wake lock: ${err.name}, ${err.message}`);
             });
+        }
+    }
+    
+    // Theme helpers
+    setDarkMode(enabled) {
+        this.darkMode = enabled;
+        document.body.classList.toggle('dark', enabled);
+        document.getElementById('themeToggle').checked = enabled;
+        localStorage.setItem('darkMode', enabled ? '1' : '0');
+    }
+
+    loadThemePreference() {
+        const saved = localStorage.getItem('darkMode');
+        if (saved !== null) {
+            this.setDarkMode(saved === '1');
+        } else {
+            // default to system preference
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            this.setDarkMode(prefersDark);
         }
     }
     
