@@ -4,12 +4,14 @@ class WorkoutTimerWeb {
         this.restTime = 15;
         this.totalTime = 300;
         this.soundType = 'beep';
+        this.keepScreenAwake = true;
         
         this.timeElapsed = 0;
         this.cyclesCompleted = 0;
         this.isRunning = false;
         this.isPaused = false;
         this.timerInterval = null;
+        this.wakeLock = null;
         
         // single shared AudioContext (resume on user gesture)
         this.audioContext = null;
@@ -30,6 +32,11 @@ class WorkoutTimerWeb {
         // Workout section
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
         document.getElementById('stopBtn').addEventListener('click', () => this.stopWorkout());
+        
+        // Keep screen awake toggle
+        document.getElementById('keepScreenAwake').addEventListener('change', (e) => {
+            this.keepScreenAwake = e.target.checked;
+        });
         
         // Preset buttons
         document.querySelectorAll('.preset-btn').forEach(btn => {
@@ -100,6 +107,7 @@ class WorkoutTimerWeb {
         this.restTime = parseInt(document.getElementById('restTime').value);
         this.totalTime = parseInt(document.getElementById('totalTime').value);
         this.soundType = document.getElementById('soundSelect').value;
+        this.keepScreenAwake = document.getElementById('keepScreenAwake').checked;
         
         // Validate
         if (this.totalTime < (this.actionTime + this.restTime)) {
@@ -115,6 +123,12 @@ class WorkoutTimerWeb {
         
         // resume audio context on user interaction
         this.resumeAudioContext();
+        
+        // Request wake lock if enabled
+        if (this.keepScreenAwake) {
+            this.requestWakeLock();
+        }
+        
         // Show workout section
         this.showSection('workoutSection');
         
@@ -201,6 +215,7 @@ class WorkoutTimerWeb {
     stopWorkout() {
         if (confirm('Are you sure you want to stop the workout?')) {
             this.isRunning = false;
+            this.releaseWakeLock();
             this.resetToSetup();
         }
     }
@@ -208,6 +223,7 @@ class WorkoutTimerWeb {
     completeWorkout() {
         this.isRunning = false;
         this.playSound(3); // 3 beeps for completion
+        this.releaseWakeLock();
         
         document.getElementById('finalTotalTime').textContent = this.formatTime(this.totalTime);
         document.getElementById('finalCycles').textContent = this.cyclesCompleted;
@@ -234,10 +250,36 @@ class WorkoutTimerWeb {
     resetToSetup() {
         this.isRunning = false;
         this.isPaused = false;
+        this.releaseWakeLock();
         document.getElementById('pauseBtn').textContent = 'Pause';
         document.getElementById('pauseBtn').classList.remove('btn-success');
         document.getElementById('pauseBtn').classList.add('btn-warning');
         this.showSection('setupSection');
+    }
+    
+    async requestWakeLock() {
+        try {
+            if ('wakeLock' in navigator) {
+                this.wakeLock = await navigator.wakeLock.request('screen');
+                
+                // Handle wake lock being released
+                this.wakeLock.addEventListener('release', () => {
+                    console.log('Wake lock was released');
+                });
+            }
+        } catch (err) {
+            console.error(`Wake lock request failed: ${err.name}, ${err.message}`);
+        }
+    }
+    
+    releaseWakeLock() {
+        if (this.wakeLock) {
+            this.wakeLock.release().then(() => {
+                this.wakeLock = null;
+            }).catch(err => {
+                console.error(`Error releasing wake lock: ${err.name}, ${err.message}`);
+            });
+        }
     }
     
     showSection(sectionId) {
