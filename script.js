@@ -25,11 +25,21 @@ class WorkoutTimerWeb {
         
         this.initializeEventListeners();
         this.loadThemePreference();
+        // ensure totalTime field is correct at startup
+        this.updateTotalTime();
     }
     
     initializeEventListeners() {
         // Setup section
         document.getElementById('startBtn').addEventListener('click', () => this.startWorkout());
+        
+        // Recalculate total any time a relevant input changes
+        ['actionTime','restTime','setCount'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('input', () => this.updateTotalTime());
+            }
+        });
         
         // Workout section
         document.getElementById('pauseBtn').addEventListener('click', () => this.togglePause());
@@ -60,6 +70,22 @@ class WorkoutTimerWeb {
         const mins = Math.floor(seconds / 60);
         const secs = seconds % 60;
         return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+
+    /**
+     * Recalculate total workout time based on action + rest multiplied by sets.
+     * Updates both the internal value and the readonly input field.
+     */
+    updateTotalTime() {
+        const action = parseInt(document.getElementById('actionTime').value) || 0;
+        const rest = parseInt(document.getElementById('restTime').value) || 0;
+        const sets = parseInt(document.getElementById('setCount').value) || 0;
+        const total = (action + rest) * sets;
+        this.totalTime = total;
+        const totalEl = document.getElementById('totalTime');
+        if (totalEl) {
+            totalEl.value = total;
+        }
     }
     
     playSound(count = 1) {
@@ -112,7 +138,12 @@ class WorkoutTimerWeb {
     startWorkout() {
         this.actionTime = parseInt(document.getElementById('actionTime').value);
         this.restTime = parseInt(document.getElementById('restTime').value);
-        this.totalTime = parseInt(document.getElementById('totalTime').value);
+        const setCount = parseInt(document.getElementById('setCount').value);
+
+        // totalTime is computed from the inputs rather than trusting the field
+        this.totalTime = (this.actionTime + this.restTime) * setCount;
+        document.getElementById('totalTime').value = this.totalTime;
+
         this.soundType = document.getElementById('soundSelect').value;
         this.keepScreenAwake = document.getElementById('keepScreenAwake').checked;
         
@@ -242,11 +273,11 @@ class WorkoutTimerWeb {
         console.log('preset button clicked', button.dataset);
         const action = parseInt(button.dataset.action);
         const rest = parseInt(button.dataset.rest);
-        const total = parseInt(button.dataset.total);
         
         document.getElementById('actionTime').value = action;
         document.getElementById('restTime').value = rest;
-        document.getElementById('totalTime').value = total;
+        // recompute total and update field before starting
+        this.updateTotalTime();
         
         // resume audio context and start workout using this preset
         this.resumeAudioContext();

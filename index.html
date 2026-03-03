@@ -18,6 +18,11 @@
             <h2>Set Up Your Workout</h2>
             
             <div class="input-group">
+                <label for="setCount">Number of Sets:</label>
+                <input type="number" id="setCount" min="1" value="5" max="100">
+            </div>
+
+            <div class="input-group">
                 <label for="actionTime">Action/Exercise Time (seconds):</label>
                 <input type="number" id="actionTime" min="1" value="30" max="600">
             </div>
@@ -28,8 +33,8 @@
             </div>
             
             <div class="input-group">
-                <label for="totalTime">Total Workout Time (seconds):</label>
-                <input type="number" id="totalTime" min="1" value="300" max="3600">
+                <label for="totalTime">Total Workout Time (seconds) <small>(calculated)</small>:</label>
+                <input type="number" id="totalTime" min="1" value="300" max="3600" readonly>
             </div>
             
             <div class="input-group">
